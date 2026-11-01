@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from orchestrator import provider  # noqa: E402
-from orchestrator.run_m1 import CLAUDE, DENY_READ, VENV_PY, audit, posix  # noqa: E402
+from orchestrator.run_m1 import CLAUDE, DENY_READ, VENV_PY, audit, posix, rea_server  # noqa: E402
 from validation import discovery_check  # noqa: E402
 
 ALLOWED = ["Read", "Glob", "Grep", "Edit(./analysis/**)", "Bash(./check:*)", "Bash(./check)", "mcp__rea"]
@@ -42,7 +42,7 @@ def write_workspace(run_dir: Path, extracted: Path, a) -> Path:
         "#!/bin/sh\n"
         f'PYTHONPATH="{posix(ROOT)}" exec "{posix(VENV_PY)}" -m validation.discovery_check --root "{posix(extracted)}" '
         f'"{posix(ws / "analysis" / "discovery.json")}"\n', encoding="utf-8", newline="\n")
-    rea = json.loads((ROOT / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]["rea"]
+    rea = rea_server()
     (run_dir / "mcp.json").write_text(json.dumps({"mcpServers": {"rea": rea}}, indent=2), encoding="utf-8")
     settings = {"permissions": {"allow": ALLOWED,
                                 "deny": [f"Read(/{posix(p)}/**)" for p in DENY_READ] + ["WebFetch", "WebSearch", "Agent"]}}
@@ -83,6 +83,7 @@ def main(argv=None) -> int:
     try:
         a.model = provider.resolve_model(a)
         a.env = provider.agent_env(a.provider, a.model)
+        rea_server()
     except provider.ProviderError as e:
         print(f"refusing: {e}")
         return 2

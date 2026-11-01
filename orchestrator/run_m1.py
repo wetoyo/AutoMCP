@@ -46,6 +46,18 @@ FORBIDDEN = [str(ADAPTERS_DIR), str(ROOT / "README.md"), str(ROOT / "targets" / 
 DENY_READ = [p for p in FORBIDDEN if not p.endswith("runs")]  # the agent's own workspace is under runs/
 
 
+def rea_server() -> dict:
+    """The REA entry from .mcp.json, written by `python -m analysis.setup_rea`."""
+    try:
+        rea = json.loads((ROOT / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]["rea"]
+        script = Path(rea["args"][0])
+    except (OSError, ValueError, KeyError, IndexError) as e:
+        raise provider.ProviderError(f"REA is not set up ({type(e).__name__}: {e}); run: python -m analysis.setup_rea")
+    if not script.exists():
+        raise provider.ProviderError(f"REA not found at {script}; run: python -m analysis.setup_rea")
+    return rea
+
+
 def posix(p) -> str:
     return str(p).replace("\\", "/")
 
@@ -70,7 +82,7 @@ def write_workspace(run_dir: Path, a) -> Path:
         "#!/bin/sh\n"
         f'exec "{posix(VENV_PY)}" "{posix(ROOT / "orchestrator" / "wam_cli.py")}" '
         f'--target {a.target} --workspace "{posix(ws)}" "$@"\n', encoding="utf-8", newline="\n")
-    rea = json.loads((ROOT / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]["rea"]
+    rea = rea_server()
     (run_dir / "mcp.json").write_text(json.dumps({"mcpServers": {"rea": rea}}, indent=2), encoding="utf-8")
     settings = {"permissions": {
         "allow": ["Read", "Glob", "Grep", "Edit(./adapter/**)", "Edit(./scratch/**)",
@@ -180,6 +192,7 @@ def main(argv=None) -> int:
     try:
         a.model = provider.resolve_model(a)
         a.env = provider.agent_env(a.provider, a.model)
+        rea_server()
     except provider.ProviderError as e:
         print(f"refusing: {e}")
         return 2

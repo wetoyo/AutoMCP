@@ -17,3 +17,6 @@ targets/*/extracted/
 # Generated at run time
 runs/
 runtime/live/
+
+# Machine-local MCP config, written by: python -m analysis.setup_rea
+.mcp.json

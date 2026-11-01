@@ -50,7 +50,10 @@ python -m venv .venv && .venv/Scripts/pip install -r requirements.txt
 # Validate a saved adapter against disposable instances (fresh + restart)
 .venv/Scripts/python.exe -m validation.harness sumatrapdf new_window_agent --calls 3
 
-# Ask the agent for a new tool. Runs on Muse Spark: needs MODEL_API_KEY and the `claude` CLI (see Agent model setup), plus REA + Ghidra per analysis/
+# One-time setup for the agent loops: REA + Ghidra (see REA setup), then MODEL_API_KEY + the `claude` CLI (see Agent model setup)
+.venv/Scripts/python.exe -m analysis.setup_rea --download-ghidra
+
+# Ask the agent for a new tool (runs on Muse Spark)
 # (add --provider anthropic to run on Claude instead)
 .venv/Scripts/python.exe -m orchestrator.run_m1 --target sumatrapdf --operation <dir_name> \
     --request "Expose the application's internal function for ..."
@@ -169,11 +172,43 @@ Git holds the framework, the saved adapters and the docs. These stay out of git 
 - **Targets** (`targets/<app>/app`, `source`, `extracted`, `dl`): the harness, demos and `./wam` need `app/`;
   the agent loop also needs `source/` (native) or `extracted/` (Electron). Adapters are build-locked, so use the
   exact builds listed in [Results](#results) (sha256s are in each `manifest.json`).
-- **REA + Ghidra**: `.mcp.json` points at the install under `D:\Files\Code\MCPE\windows-auto-mcp\analysis`.
-  To install here instead: `cd analysis/rea-runtime && npm ci`, unpack Ghidra 12.1.4 into `analysis/tools/`, and
-  update the paths in `.mcp.json`. Only the agent loops (`run_m1`, `run_analysis`) need REA.
-- **Run logs** (`runs/`): the original transcripts and validation reports cited in `NOTES.md` are in
-  `D:\Files\Code\MCPE\windows-auto-mcp\runs\`.
+- **REA + Ghidra** (`analysis/rea-runtime/node_modules/`, `analysis/tools/`) and **`.mcp.json`**: set up with
+  `python -m analysis.setup_rea`. See [REA setup](#rea-setup-reverse-engineering-for-the-agent).
+- **Run logs** (`runs/`): each agent run writes here. The original transcripts cited in `NOTES.md` were not
+  carried over in the port. Their results are kept in each adapter's `validation.json` and `DISCOVERY.md`.
+
+## REA setup (reverse engineering for the agent)
+
+[REA](https://github.com/morluto/rea) (`rea-agents` 6.7.0) is the MCP server the discovery agent uses. It finds
+strings, cross-references, callers, pseudocode and assembly in symbol-less binaries, and builds the JavaScript
+module graph for Electron apps. For native binaries it drives **Ghidra 12.1.4**. Only the agent loops
+(`run_m1`, `run_analysis`) need REA; the harness, demos, MCP server and `muse_chat` don't.
+
+**Requirements:**
+- Node.js 20+ and npm
+- a JDK 21+ (e.g. [Adoptium](https://adoptium.net))
+- about 1.5 GB of disk for Ghidra
+
+**One command:** from the repo root, run
+
+```sh
+.venv/Scripts/python.exe -m analysis.setup_rea --download-ghidra
+```
+
+It does this:
+1. Installs REA from the pinned lockfile (`npm ci` in `analysis/rea-runtime/`).
+2. Downloads Ghidra 12.1.4 from the
+   [official NSA release](https://github.com/NationalSecurityAgency/ghidra/releases/tag/Ghidra_12.1.4_build), checks
+   its sha256 (`ddac49f9…d4db`), and unpacks it into `analysis/tools/`. Without `--download-ghidra`, it looks for
+   an existing copy.
+3. Finds a JDK 21+: `--java-home`, then `JAVA_HOME`, then `java` on `PATH`.
+4. Writes `.mcp.json` (git-ignored) with this checkout's absolute paths. The orchestrator copies the `rea` entry
+   into each agent run.
+5. Runs `rea capabilities` as a smoke test.
+
+To use a Ghidra you already have, pass `--ghidra-dir <extracted ghidra_12.1.4_PUBLIC>`; any other version is
+rejected. Rerun the script after moving the repo. If REA isn't set up, `run_m1` and `run_analysis` refuse to start
+and print this command. Restart Claude Code afterwards so it also picks up the `rea` server for interactive use.
 
 ## Pipeline
 
@@ -225,7 +260,8 @@ proxy targets and closure scopes the way the bridge does) in place of `bytes`.
 | `demos/` | `run_demo.py` (scripted demo), `client.py` (minimal MCP client) |
 | `docs/` | `spec.md` (MVP spec), `M3_REPORT.md` (second-app report) |
 | `targets/<app>/` | `app/` (portable binaries), `source/` (upstream at the matching tag), `dl/` (downloads) |
-| `analysis/` | REA runtime (`rea-runtime/package.json`) + Ghidra 12.1.4 (REA is registered in `.mcp.json`) |
+| `analysis/` | REA runtime (`rea-runtime/package.json`, pinned lockfile) + Ghidra 12.1.4 in `tools/` (git-ignored) |
+| `analysis/setup_rea.py` | installs REA, fetches and verifies Ghidra, finds a JDK, writes `.mcp.json`, smoke-tests |
 | `analysis/js_extract.py` | extracts JS app archives (zip family incl. Mozilla optimized jars, Electron `.asar`) with traversal checks |
 | `orchestrator/run_analysis.py`, `task_template_analysis.md` | static-analysis agent loop: REA JS graph + file tools, writes `discovery.json` + `DISCOVERY.md`; no shell except `./check` |
 | `validation/discovery_check.py` | verifies every cited file/line exists, the function is defined where claimed, and each cited symbol is present |
