@@ -1,0 +1,88 @@
+{
+  "tool": {
+    "name": "notepadpp_new_document",
+    "description": "Create a new empty untitled document (tab) in the active Notepad++ view by calling Notepad_plus::fileNew() in-process.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "mutates_state": true,
+    "destructive": false
+  },
+  "app": {
+    "name": "Notepad++",
+    "version": "8.9.8.1",
+    "module": "notepad++.exe",
+    "sha256": "c52c9ed2ec6d0b5b3f243b29f2124f98db56b6ba92bb42a9af2665709464b3cf",
+    "pe_timestamp": "0x6ab526f3",
+    "target": "notepadpp"
+  },
+  "adapter_config": {
+    "file_new_rva": "0x13c7a0",
+    "file_new_entry_hex": "48895c2408574883ec20488bd9e88ee1f0ff488bc8e8d643f1ff488bf84885c0",
+    "run_proc_rva": "0x109950",
+    "run_proc_entry_hex": "48895c24084889742418488954241057",
+    "window_class": "Notepad++",
+    "window_hself_offset": "0x18",
+    "core_offset": "0x20",
+    "core_public_iface_offset": "0x0",
+    "core_pdoctab_offset": "0x800",
+    "core_pnondoctab_offset": "0x808",
+    "core_active_view_offset": "0x32fc",
+    "core_size_bound": "0x3358"
+  },
+  "resolution": {
+    "strategy": "module base + RVA, guarded by PE TimeDateStamp and entry bytes of fileNew and Notepad_plus_Window::runProc",
+    "function": "Notepad_plus::fileNew() at RVA 0x13c7a0 (FUN_14013c7a0)",
+    "calling_convention": "win64 thiscall: void fileNew(Notepad_plus* this /* rcx */)",
+    "thread_affinity": "GUI thread owning the top-level 'Notepad++' window (via WAM.onUiThread)",
+    "this_or_state_resolution": "GetWindowLongPtrW(hwnd 'Notepad++', GWLP_USERDATA) = Notepad_plus_Window*; check +0x18 (_hSelf) == hwnd; this = window + 0x20 (_notepad_plus_plus_core, per runProc 'ADD RCX,0x20'); check this[0] (_pPublicInterface) == window, _pDocTab/_pNonDocTab (+0x800/+0x808) point inside the object, _activeView (+0x32fc) in {0,1}"
+  },
+  "postcondition": [
+    {
+      "observer": "window_message",
+      "params": {
+        "window_class": "Notepad++",
+        "msg": "0x7ef",
+        "wparam": 0,
+        "lparam": 0
+      },
+      "expect": {
+        "delta": 1
+      },
+      "why": "NPPM_GETNBOPENFILES(ALL_OPEN_FILES) returns _mainDocTab.nbItem()+_subDocTab.nbItem(); fileNew adds exactly one buffer to the current view"
+    },
+    {
+      "observer": "child_control_items",
+      "params": {
+        "window_class": "Notepad++",
+        "control_class": "SysTabControl32",
+        "count_msg": "0x1304"
+      },
+      "expect": {
+        "delta": 1
+      },
+      "why": "TCM_GETITEMCOUNT summed over the tab controls: the new document adds one tab"
+    },
+    {
+      "observer": "window_title",
+      "params": {
+        "window_class": "Notepad++"
+      },
+      "expect": {
+        "changed": true
+      },
+      "why": "fileNew switches to the new buffer, so the title becomes 'new N - Notepad++' with a fresh N"
+    }
+  ],
+  "status": "verified",
+  "validation": {
+    "report": "validation.json",
+    "at": "2026-10-21T01:35:59.149400+00:00"
+  },
+  "origin": {
+    "kind": "agent",
+    "run_id": "20261020-212953-notepadpp-new_document_agent"
+  }
+}

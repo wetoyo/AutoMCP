@@ -1,0 +1,189 @@
+{
+  "tool": "sumatrapdf_new_window",
+  "adapter_dir": "D:\\Files\\Code\\MCPE\\windows-auto-mcp\\runs\\20261020-214240-sumatrapdf-new_window_agent\\workspace\\adapter",
+  "started": "2026-10-21T01:48:45.833379+00:00",
+  "phases": [
+    {
+      "phase": "fresh_instance",
+      "pid": 12612,
+      "calls": [
+        {
+          "adapter_result": {
+            "ok": true,
+            "hwndFrame": "0x270814",
+            "windowsBefore": 1,
+            "windowsAfter": 2
+          },
+          "postconditions": [
+            {
+              "observer": "top_level_windows",
+              "why": "CreateMainWindow creates one new top-level SUMATRA_PDF_FRAME and CreateAndShowMainWindow shows it (SW_SHOW / SW_MAXIMIZE).",
+              "before": 1,
+              "after": 2,
+              "holds": true
+            },
+            {
+              "observer": "top_level_windows",
+              "why": "The number of visible top-level windows of the process changes: the new frame appears (observed +2, because a toolbar tooltip window of the new frame also becomes visible).",
+              "before": 2,
+              "after": 4,
+              "holds": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "adapter_result": {
+            "ok": true,
+            "hwndFrame": "0x12058c",
+            "windowsBefore": 2,
+            "windowsAfter": 3
+          },
+          "postconditions": [
+            {
+              "observer": "top_level_windows",
+              "why": "CreateMainWindow creates one new top-level SUMATRA_PDF_FRAME and CreateAndShowMainWindow shows it (SW_SHOW / SW_MAXIMIZE).",
+              "before": 2,
+              "after": 3,
+              "holds": true
+            },
+            {
+              "observer": "top_level_windows",
+              "why": "The number of visible top-level windows of the process changes: the new frame appears (observed +2, because a toolbar tooltip window of the new frame also becomes visible).",
+              "before": 4,
+              "after": 6,
+              "holds": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "adapter_result": {
+            "ok": true,
+            "hwndFrame": "0x4850aa6",
+            "windowsBefore": 3,
+            "windowsAfter": 4
+          },
+          "postconditions": [
+            {
+              "observer": "top_level_windows",
+              "why": "CreateMainWindow creates one new top-level SUMATRA_PDF_FRAME and CreateAndShowMainWindow shows it (SW_SHOW / SW_MAXIMIZE).",
+              "before": 3,
+              "after": 4,
+              "holds": true
+            },
+            {
+              "observer": "top_level_windows",
+              "why": "The number of visible top-level windows of the process changes: the new frame appears (observed +2, because a toolbar tooltip window of the new frame also becomes visible).",
+              "before": 6,
+              "after": 8,
+              "holds": true
+            }
+          ],
+          "ok": true
+        }
+      ],
+      "preflight": {
+        "ok": true,
+        "function": "0x7ff64cda39b8",
+        "windows": 1,
+        "ui_thread": 2956
+      },
+      "alive_after": true,
+      "rejects_bad_args": true,
+      "passed": true
+    },
+    {
+      "phase": "after_restart",
+      "pid": 18308,
+      "calls": [
+        {
+          "adapter_result": {
+            "ok": true,
+            "hwndFrame": "0x1e0844",
+            "windowsBefore": 1,
+            "windowsAfter": 2
+          },
+          "postconditions": [
+            {
+              "observer": "top_level_windows",
+              "why": "CreateMainWindow creates one new top-level SUMATRA_PDF_FRAME and CreateAndShowMainWindow shows it (SW_SHOW / SW_MAXIMIZE).",
+              "before": 1,
+              "after": 2,
+              "holds": true
+            },
+            {
+              "observer": "top_level_windows",
+              "why": "The number of visible top-level windows of the process changes: the new frame appears (observed +2, because a toolbar tooltip window of the new frame also becomes visible).",
+              "before": 2,
+              "after": 4,
+              "holds": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "adapter_result": {
+            "ok": true,
+            "hwndFrame": "0x390646",
+            "windowsBefore": 2,
+            "windowsAfter": 3
+          },
+          "postconditions": [
+            {
+              "observer": "top_level_windows",
+              "why": "CreateMainWindow creates one new top-level SUMATRA_PDF_FRAME and CreateAndShowMainWindow shows it (SW_SHOW / SW_MAXIMIZE).",
+              "before": 2,
+              "after": 3,
+              "holds": true
+            },
+            {
+              "observer": "top_level_windows",
+              "why": "The number of visible top-level windows of the process changes: the new frame appears (observed +2, because a toolbar tooltip window of the new frame also becomes visible).",
+              "before": 4,
+              "after": 6,
+              "holds": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "adapter_result": {
+            "ok": true,
+            "hwndFrame": "0xab40912",
+            "windowsBefore": 3,
+            "windowsAfter": 4
+          },
+          "postconditions": [
+            {
+              "observer": "top_level_windows",
+              "why": "CreateMainWindow creates one new top-level SUMATRA_PDF_FRAME and CreateAndShowMainWindow shows it (SW_SHOW / SW_MAXIMIZE).",
+              "before": 3,
+              "after": 4,
+              "holds": true
+            },
+            {
+              "observer": "top_level_windows",
+              "why": "The number of visible top-level windows of the process changes: the new frame appears (observed +2, because a toolbar tooltip window of the new frame also becomes visible).",
+              "before": 6,
+              "after": 8,
+              "holds": true
+            }
+          ],
+          "ok": true
+        }
+      ],
+      "preflight": {
+        "ok": true,
+        "function": "0x7ff64cda39b8",
+        "windows": 1,
+        "ui_thread": 25688
+      },
+      "alive_after": true,
+      "rejects_bad_args": true,
+      "passed": true
+    }
+  ],
+  "static_problems": [],
+  "passed": true
+}

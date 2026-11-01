@@ -1,0 +1,201 @@
+{
+  "tool": "marktext_new_untitled_tab",
+  "adapter_dir": "D:\\Files\\Code\\MCPE\\windows-auto-mcp\\runs\\20261020-233156-marktext-new_tab_agent\\workspace\\adapter",
+  "started": "2026-10-21T03:35:14.251490+00:00",
+  "phases": [
+    {
+      "phase": "fresh_instance",
+      "pid": 27344,
+      "calls": [
+        {
+          "adapter_result": {
+            "ok": true,
+            "tab_id": "mt-1",
+            "filename": "Untitled-2",
+            "tab_count": 2,
+            "dom_tab_count": 2,
+            "title": "Untitled-2 - MarkText"
+          },
+          "postconditions": [
+            {
+              "observer": "page_eval",
+              "why": "Rendered tab strip in the DOM gains exactly one <li> (Vue re-render of the tabs component, index-DlO1BZCi.js ~192780), independent of the store object the adapter checks.",
+              "before": 1,
+              "after": 2,
+              "holds": true
+            },
+            {
+              "observer": "window_title",
+              "why": "The new tab becomes current, so the native window title changes from 'Untitled-N - MarkText' to 'Untitled-(N+1) - MarkText'; read via Win32 GetWindowText from outside the renderer.",
+              "before": "Untitled-1 - MarkText",
+              "after": "Untitled-2 - MarkText",
+              "holds": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "adapter_result": {
+            "ok": true,
+            "tab_id": "mt-2",
+            "filename": "Untitled-3",
+            "tab_count": 3,
+            "dom_tab_count": 3,
+            "title": "Untitled-3 - MarkText"
+          },
+          "postconditions": [
+            {
+              "observer": "page_eval",
+              "why": "Rendered tab strip in the DOM gains exactly one <li> (Vue re-render of the tabs component, index-DlO1BZCi.js ~192780), independent of the store object the adapter checks.",
+              "before": 2,
+              "after": 3,
+              "holds": true
+            },
+            {
+              "observer": "window_title",
+              "why": "The new tab becomes current, so the native window title changes from 'Untitled-N - MarkText' to 'Untitled-(N+1) - MarkText'; read via Win32 GetWindowText from outside the renderer.",
+              "before": "Untitled-2 - MarkText",
+              "after": "Untitled-3 - MarkText",
+              "holds": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "adapter_result": {
+            "ok": true,
+            "tab_id": "mt-3",
+            "filename": "Untitled-4",
+            "tab_count": 4,
+            "dom_tab_count": 4,
+            "title": "Untitled-4 - MarkText"
+          },
+          "postconditions": [
+            {
+              "observer": "page_eval",
+              "why": "Rendered tab strip in the DOM gains exactly one <li> (Vue re-render of the tabs component, index-DlO1BZCi.js ~192780), independent of the store object the adapter checks.",
+              "before": 3,
+              "after": 4,
+              "holds": true
+            },
+            {
+              "observer": "window_title",
+              "why": "The new tab becomes current, so the native window title changes from 'Untitled-N - MarkText' to 'Untitled-(N+1) - MarkText'; read via Win32 GetWindowText from outside the renderer.",
+              "before": "Untitled-3 - MarkText",
+              "after": "Untitled-4 - MarkText",
+              "holds": true
+            }
+          ],
+          "ok": true
+        }
+      ],
+      "preflight": {
+        "ok": true,
+        "tab_count": 1,
+        "current_tab": "mt-0",
+        "dom_tab_count": 1
+      },
+      "alive_after": true,
+      "rejects_bad_args": true,
+      "passed": true
+    },
+    {
+      "phase": "after_restart",
+      "pid": 25812,
+      "calls": [
+        {
+          "adapter_result": {
+            "ok": true,
+            "tab_id": "mt-4",
+            "filename": "Untitled-5",
+            "tab_count": 5,
+            "dom_tab_count": 5,
+            "title": "Untitled-5 - MarkText"
+          },
+          "postconditions": [
+            {
+              "observer": "page_eval",
+              "why": "Rendered tab strip in the DOM gains exactly one <li> (Vue re-render of the tabs component, index-DlO1BZCi.js ~192780), independent of the store object the adapter checks.",
+              "before": 4,
+              "after": 5,
+              "holds": true
+            },
+            {
+              "observer": "window_title",
+              "why": "The new tab becomes current, so the native window title changes from 'Untitled-N - MarkText' to 'Untitled-(N+1) - MarkText'; read via Win32 GetWindowText from outside the renderer.",
+              "before": "Untitled-4 - MarkText",
+              "after": "Untitled-5 - MarkText",
+              "holds": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "adapter_result": {
+            "ok": true,
+            "tab_id": "mt-5",
+            "filename": "Untitled-6",
+            "tab_count": 6,
+            "dom_tab_count": 6,
+            "title": "Untitled-6 - MarkText"
+          },
+          "postconditions": [
+            {
+              "observer": "page_eval",
+              "why": "Rendered tab strip in the DOM gains exactly one <li> (Vue re-render of the tabs component, index-DlO1BZCi.js ~192780), independent of the store object the adapter checks.",
+              "before": 5,
+              "after": 6,
+              "holds": true
+            },
+            {
+              "observer": "window_title",
+              "why": "The new tab becomes current, so the native window title changes from 'Untitled-N - MarkText' to 'Untitled-(N+1) - MarkText'; read via Win32 GetWindowText from outside the renderer.",
+              "before": "Untitled-5 - MarkText",
+              "after": "Untitled-6 - MarkText",
+              "holds": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "adapter_result": {
+            "ok": true,
+            "tab_id": "mt-6",
+            "filename": "Untitled-7",
+            "tab_count": 7,
+            "dom_tab_count": 7,
+            "title": "Untitled-7 - MarkText"
+          },
+          "postconditions": [
+            {
+              "observer": "page_eval",
+              "why": "Rendered tab strip in the DOM gains exactly one <li> (Vue re-render of the tabs component, index-DlO1BZCi.js ~192780), independent of the store object the adapter checks.",
+              "before": 6,
+              "after": 7,
+              "holds": true
+            },
+            {
+              "observer": "window_title",
+              "why": "The new tab becomes current, so the native window title changes from 'Untitled-N - MarkText' to 'Untitled-(N+1) - MarkText'; read via Win32 GetWindowText from outside the renderer.",
+              "before": "Untitled-6 - MarkText",
+              "after": "Untitled-7 - MarkText",
+              "holds": true
+            }
+          ],
+          "ok": true
+        }
+      ],
+      "preflight": {
+        "ok": true,
+        "tab_count": 4,
+        "current_tab": "mt-3",
+        "dom_tab_count": 4
+      },
+      "alive_after": true,
+      "rejects_bad_args": true,
+      "passed": true
+    }
+  ],
+  "static_problems": [],
+  "passed": true
+}

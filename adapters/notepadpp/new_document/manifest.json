@@ -1,0 +1,96 @@
+{
+  "tool": {
+    "name": "notepadpp_new_document",
+    "description": "Create a new empty document (tab) in the running Notepad++ instance by calling Notepad_plus::fileNew() in-process. Returns open-file count and current buffer id before/after.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "mutates_state": true,
+    "destructive": false
+  },
+  "app": {
+    "name": "Notepad++",
+    "version": "8.9.8.1",
+    "build": "portable x64",
+    "module": "notepad++.exe",
+    "sha256": "c52c9ed2ec6d0b5b3f243b29f2124f98db56b6ba92bb42a9af2665709464b3cf",
+    "pe_timestamp": "0x6ab526f3",
+    "target": "notepadpp"
+  },
+  "resolution": {
+    "strategy": "module-relative RVA, guarded by PE TimeDateStamp + prologue bytes",
+    "function": "Notepad_plus::fileNew()",
+    "rva": "0x13c7a0",
+    "ghidra_address": "0x14013c7a0",
+    "prologue_hex": "48895c2408574883ec20488bd9e88ee1f0ff488bc8e8d643",
+    "calling_convention": "Win64 __thiscall: RCX = Notepad_plus*, no other args, void return",
+    "this_resolution": {
+      "window_class": "Notepad++",
+      "steps": "FindWindowEx(class) owned by pid -> GetWindowLongPtr(GWLP_USERDATA) = Notepad_plus_Window* -> +core_offset = Notepad_plus*",
+      "hself_offset": "0x18",
+      "core_offset": "0x20",
+      "guards": [
+        "Window::_hSelf at +0x18 == HWND",
+        "Notepad_plus::_pPublicInterface at core+0 == Notepad_plus_Window*"
+      ]
+    },
+    "thread_affinity": "UI thread (window owner); dispatched inside DispatchMessageW, woken by PostMessage(WM_NULL)"
+  },
+  "discovery": {
+    "provider": "REA 6.7.0 / Ghidra 12.1.4 (evidence.json)",
+    "chain": [
+      "string 'tab-untitled-string' @0x140488178 -> xrefs in 0x140050880, 0x140050b90, 0x140050f60 (FileManager, Buffer.cpp)",
+      "0x140050b90 = FileManager::newEmptyDocument (callers: 0x140050e50, 0x1400ed380, 0x14013c7a0)",
+      "0x14013c7a0 decompiles to: newEmptyDocument(FileManager::getInstance()); loadBufferIntoView(this, buf, this->_activeView@0x32fc, true); inlined switchToFile via _mainDocTab@0x800/_subDocTab@0x808",
+      "sole caller 0x1401175e0 = Notepad_plus::command() (IDM_FILE_NEW / IDM_SYSTRAYPOPUP_NEWDOC / ... cases)"
+    ],
+    "runtime_layout_probe": "self-reference scan of Notepad_plus_Window found exactly one back-pointer at +0x20; _hSelf at +0x18 == HWND"
+  },
+  "status": "verified",
+  "validation": {
+    "report": "validation.json",
+    "at": "2026-10-21T01:25:59.583948+00:00"
+  },
+  "approval": {
+    "by": "wetoyo",
+    "at": "2026-10-21T01:21:05.202964+00:00",
+    "sha256": "c52c9ed2ec6d0b5b3f243b29f2124f98db56b6ba92bb42a9af2665709464b3cf"
+  },
+  "adapter_config": {
+    "rva": "0x13c7a0",
+    "prologue_hex": "48895c2408574883ec20488bd9e88ee1f0ff488bc8e8d643",
+    "window_class": "Notepad++",
+    "hself_offset": "0x18",
+    "core_offset": "0x20"
+  },
+  "postcondition_note": "NPPM_GETNBOPENFILES(ALL_OPEN_FILES) increases by exactly 1 and NPPM_GETCURRENTBUFFERID changes",
+  "postcondition": [
+    {
+      "observer": "window_message",
+      "params": {
+        "window_class": "Notepad++",
+        "msg": "0x7ef",
+        "wparam": 0,
+        "lparam": 0
+      },
+      "expect": {
+        "delta": 1
+      },
+      "why": "NPPM_GETNBOPENFILES(ALL_OPEN_FILES)"
+    },
+    {
+      "observer": "child_control_items",
+      "params": {
+        "window_class": "Notepad++",
+        "control_class": "SysTabControl32",
+        "count_msg": "0x1304"
+      },
+      "expect": {
+        "delta": 1
+      },
+      "why": "TCM_GETITEMCOUNT summed over document tab bars"
+    }
+  ]
+}

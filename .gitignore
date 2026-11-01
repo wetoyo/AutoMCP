@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+.claude/settings.local.json
+.claude/worktrees/
+
+# Machine-local tools and third-party payloads (see README "Setup")
+analysis/tools/
+analysis/rea/
+analysis/rea-runtime/node_modules/
+targets/*/app/
+targets/*/dl/
+targets/*/source/
+targets/*/src/
+targets/*/extracted/
+
+# Generated at run time
+runs/
+runtime/live/

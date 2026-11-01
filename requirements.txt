@@ -1,0 +1,5 @@
+frida==17.24.3
+frida-tools==14.11.0
+mcp==2.3.0
+pywin32==312
+websockets==13.1

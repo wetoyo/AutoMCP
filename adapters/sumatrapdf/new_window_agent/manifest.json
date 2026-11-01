@@ -1,0 +1,71 @@
+{
+  "tool": {
+    "name": "sumatrapdf_new_window",
+    "description": "Open a new, empty SumatraPDF main window (same as File > New Window / Ctrl+N) by calling the app's internal CreateAndShowMainWindow(nullptr) in-process on the GUI thread. Takes no arguments; returns the new frame HWND and the window count before/after.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "mutates_state": true,
+    "destructive": false
+  },
+  "app": {
+    "name": "SumatraPDF",
+    "version": "3.6.1",
+    "module": "SumatraPDF-3.6.1-64.exe",
+    "sha256": "719f689b34f47be8ca105ce8484948474dafde0e106bab599e4a89326070c3d0",
+    "pe_timestamp": "0x69d3aabe",
+    "target": "sumatrapdf"
+  },
+  "adapter_config": {
+    "fn_rva": "0x1a39b8",
+    "fn_entry_bytes": "48895c24084889742410574883ec50488b05",
+    "gGlobalPrefs_rva": "0x10eb6e8",
+    "prefs_windowState_off": "0x280",
+    "gWindows_rva": "0x10dae50",
+    "vec_len_off": "0x8",
+    "vec_cap_off": "0x10",
+    "vec_els_off": "0x20",
+    "mw_hwndFrame_off": "0x10",
+    "mw_hwndCanvas_off": "0x18",
+    "frame_class": "SUMATRA_PDF_FRAME",
+    "canvas_class": "SUMATRA_PDF_CANVAS"
+  },
+  "resolution": {
+    "strategy": "module base + RVA 0x1a39b8, guarded by PE TimeDateStamp 0x69d3aabe and 18 entry bytes",
+    "function": "CreateAndShowMainWindow(SessionData* data) (src/SumatraPDF.cpp:1603), called with data = nullptr",
+    "calling_convention": "win64 (RCX = SessionData* = nullptr; RAX = MainWindow* or nullptr)",
+    "thread_affinity": "GUI thread owning the existing SUMATRA_PDF_FRAME windows (run via WAM.onUiThread inside DispatchMessageW)",
+    "this_or_state_resolution": "Free function, no this. Implicit globals validated before the call: gGlobalPrefs (RVA 0x10eb6e8) non-null with windowState in 0..4; gWindows Vec (RVA 0x10dae50) with 1<=len<=cap and every MainWindow* having hwndFrame (+0x10) = a SUMATRA_PDF_FRAME of this process and hwndCanvas (+0x18) = SUMATRA_PDF_CANVAS. After the call: gWindows len +1 and the last entry == returned pointer."
+  },
+  "postcondition": [
+    {
+      "observer": "top_level_windows",
+      "params": {
+        "window_class": "SUMATRA_PDF_FRAME"
+      },
+      "expect": {
+        "delta": 1
+      },
+      "why": "CreateMainWindow creates one new top-level SUMATRA_PDF_FRAME and CreateAndShowMainWindow shows it (SW_SHOW / SW_MAXIMIZE)."
+    },
+    {
+      "observer": "top_level_windows",
+      "params": {},
+      "expect": {
+        "changed": true
+      },
+      "why": "The number of visible top-level windows of the process changes: the new frame appears (observed +2, because a toolbar tooltip window of the new frame also becomes visible)."
+    }
+  ],
+  "status": "verified",
+  "validation": {
+    "report": "validation.json",
+    "at": "2026-10-21T01:48:52.527117+00:00"
+  },
+  "origin": {
+    "kind": "agent",
+    "run_id": "20261020-214240-sumatrapdf-new_window_agent"
+  }
+}

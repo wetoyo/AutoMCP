@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "rea": {
+      "command": "node",
+      "args": [
+        "D:\\Files\\Code\\MCPE\\windows-auto-mcp\\analysis\\rea-runtime\\node_modules\\rea-agents\\scripts\\rea.mjs",
+        "mcp"
+      ],
+      "env": {
+        "GHIDRA_INSTALL_DIR": "D:\\Files\\Code\\MCPE\\windows-auto-mcp\\analysis\\tools\\ghidra_12.1.4_PUBLIC",
+        "JAVA_HOME": "C:\\Users\\wesle\\AppData\\Local\\Programs\\Eclipse Adoptium\\jdk-25.0.2.10-hotspot",
+        "REA_ANALYSIS_PROVIDER": "ghidra",
+        "REA_GHIDRA_STARTUP_TIMEOUT_MS": "600000"
+      }
+    }
+  }
+}
