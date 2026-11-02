@@ -20,3 +20,6 @@ runtime/live/
 
 # Machine-local MCP config, written by: python -m analysis.setup_rea
 .mcp.json
+
+# Generated tools (adapters, manifests, validation reports) stay local
+adapters/
