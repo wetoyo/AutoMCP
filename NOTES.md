@@ -124,7 +124,6 @@ messages and records denials (`permission_denials` in `run.json`), with a regres
 
 ## Where the evidence is
 
-- Adapter files are local only (`adapters/` is git-ignored).
 - `adapters/notepadpp/new_document/evidence.json`: the REA evidence bundle for the M0 discovery.
 - `adapters/*/new_*_agent/DISCOVERY.md`: the agent's evidence chain, failed hypotheses and uncertainties.
 - `runs/<run_id>/attempt-N.jsonl`: full agent transcripts (stream-json). `validation-N.json`: independent validation reports.
