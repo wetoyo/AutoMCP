@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parent.parent
 class ToolRuleTests(unittest.TestCase):
     def test_saved_adapters_are_muse_compatible(self):
         manifests = sorted((ROOT / "adapters").glob("*/*/manifest.json"))
-        self.assertTrue(manifests)
+        if not manifests:
+            self.skipTest("no local adapters (adapters/ is git-ignored)")
         for p in manifests:
             tool = json.loads(p.read_text(encoding="utf-8"))["tool"]
             self.assertEqual(muse.tool_problems(tool), [], p)

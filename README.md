@@ -20,6 +20,9 @@ M3 report: [`docs/M3_REPORT.md`](docs/M3_REPORT.md)
 
 ## Results
 
+These tools were generated and validated locally. The `adapters/` folder is git-ignored, so they aren't in the
+repository.
+
 | Tool | App | Internal function (RVA) | Origin | Validation |
 |---|---|---|---|---|
 | `notepadpp_new_document` | Notepad++ 8.9.8.1 x64 | `Notepad_plus::fileNew()` (`0x13c7a0`) | manual M0 (`adapters/notepadpp/new_document`, **approved**) | verified, restart-safe |
@@ -167,7 +170,11 @@ Each attempt in `run.json` records `est_cost_usd` at these prices. The CLI's own
 
 ## Setup (local-only payloads)
 
-Git holds the framework, the saved adapters and the docs. These stay out of git (see `.gitignore`):
+Git holds the framework and the docs. These stay out of git (see `.gitignore`):
+
+- **Generated tools** (`adapters/<app>/<op>/`): every adapter, manifest, discovery report and validation report
+  stays local. A fresh clone has none; generate them with `orchestrator.run_m1`. The harness, demos and MCP
+  server read them from `adapters/`.
 
 - **Targets** (`targets/<app>/app`, `source`, `extracted`, `dl`): the harness, demos and `./wam` need `app/`;
   the agent loop also needs `source/` (native) or `extracted/` (Electron). Adapters are build-locked, so use the
@@ -255,7 +262,7 @@ proxy targets and closure scopes the way the bridge does) in place of `bytes`.
 | `mcp_server/server.py` | publishes verified, approved, uniquely named, Muse-compatible tools; reattaches after restarts |
 | `mcp_server/muse.py` | Muse Spark function-tool rules (used by the harness and server) and MCP → function-tool conversion |
 | `mcp_server/muse_chat.py` | connects Muse Spark (Responses API) to the MCP server: `--check`, `--print-tools`, one request or chat |
-| `adapters/<app>/<op>/` | `adapter.js`, `manifest.json`, `DISCOVERY.md` or `evidence.json`, `validation.json` |
+| `adapters/<app>/<op>/` | generated tools, local only (git-ignored): `adapter.js`, `manifest.json`, `DISCOVERY.md` or `evidence.json`, `validation.json` |
 | `runs/<run_id>/` | per-run agent transcripts (`attempt-N.jsonl`), validation reports, adapter snapshots, `run.json` |
 | `demos/` | `run_demo.py` (scripted demo), `client.py` (minimal MCP client) |
 | `docs/` | `spec.md` (MVP spec), `M3_REPORT.md` (second-app report) |
