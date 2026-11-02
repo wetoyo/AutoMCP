@@ -220,8 +220,8 @@ same session makes 2 more calls, each one +1 tab. The native demos still pass af
   `TARGETS` entry in `validation/harness.py` and `SOURCES`/`APP_NAMES` entries in `orchestrator/run_m1.py`.
 - **Tool arguments.** `make_handler` takes no parameters, so every tool is zero-argument. Build the handler from
   `inputSchema`, then add a harness phase that tests valid arguments.
-- **Agent sandboxing.** The `Read(...)` deny rules may not cover Grep/Glob. Add matching deny rules in
-  `write_workspace`, or move to OS-level isolation. The audit detects violations; it doesn't prevent them.
+- **Agent sandboxing.** The native harness enforces path rules in `orchestrator/workbench.py`. With
+  `--harness claude`, the CLI's `Read(...)` deny rules may not cover Grep/Glob, so the audit is the only check.
 - **Electron main process.** Only the renderer path has run live. It needs a target whose inspector fuse is on.
 - **Duplicate Notepad++ tool name.** The manual M0 adapter and the agent's M1 adapter both claim
   `notepadpp_new_document`. Without `--only`, the server publishes neither.

@@ -51,12 +51,14 @@ It cannot verify your reasoning, so make `DISCOVERY.md` explain it.
 
 ## Tools
 
-- REA MCP tools: `mcp__rea__analyze_javascript_application` takes `input_path` = a directory (or `.asar`)
+Tool names depend on your client: REA tools may appear as `open_binary`, `rea_open_binary` or `mcp__rea__open_binary`, and `check <args>` is either the shell command `./check <args>` or the `check` tool with `args` set to the argument list.
+
+- REA: `analyze_javascript_application` takes `input_path` = a directory (or `.asar`)
   and builds a static application graph. The tree is large, so pass `source_paths` (exact relative paths)
-  for the files you care about, and use `detail: "summary"`. `mcp__rea__trace_javascript_semantics` traces
+  for the files you care about, and use `detail: "summary"`. `trace_javascript_semantics` traces
   callers and data flow from that evidence.
-- Read / Grep / Glob over the extracted root and this workspace. Edit/Write only in `./analysis/`.
-- Shell: only `./check`, which runs the discovery checker on `./analysis/discovery.json`.
+- File tools: read, list and search over the extracted root and this workspace; write and edit only in `./analysis/`.
+- `check` is the only command you can run. It runs the discovery checker on `./analysis/discovery.json`.
   Iterate until it passes.
 
-When `./check` passes and DISCOVERY.md is complete, finish with a short summary.
+When `check` passes and DISCOVERY.md is complete, finish with a short summary.

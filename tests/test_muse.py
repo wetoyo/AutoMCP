@@ -30,6 +30,20 @@ class ToolRuleTests(unittest.TestCase):
             deep = {"type": "object", "properties": {"a": deep}}
         self.assertTrue(muse.tool_problems(ok | {"inputSchema": deep}))
 
+    def test_relax_schema_fits_third_party_tools(self):
+        deep = {"type": "string"}
+        for _ in range(14):
+            deep = {"type": "object", "properties": {"a": deep}}
+        schema = {"type": "object", "properties": {
+            "x": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
+            "y": {"allOf": [{"type": "string", "description": "why"}]}, "z": deep}}
+        tool = {"name": "rea_t", "description": "d", "inputSchema": schema}
+        self.assertTrue(muse.tool_problems(tool))
+        relaxed = muse.relax_schema(schema)
+        self.assertEqual(muse.tool_problems(tool | {"inputSchema": relaxed}), [])
+        self.assertEqual(relaxed["properties"]["x"], {"anyOf": [{"type": "string"}, {"type": "integer"}]})
+        self.assertEqual(relaxed["properties"]["y"], {"type": "string", "description": "why"})
+
     def test_function_tool_shape(self):
         t = muse.function_tool("n", "d", {"title": "nArguments", "type": "object", "properties": {}})
         self.assertEqual(t, {"type": "function", "name": "n", "description": "d", "strict": False,

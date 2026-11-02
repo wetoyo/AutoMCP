@@ -90,10 +90,41 @@ def write_workspace(run_dir: Path, a) -> Path:
         "deny": [f"Read(/{posix(p)}/**)" for p in DENY_READ] + ["WebFetch", "WebSearch", "Agent"],
     }}
     (run_dir / "settings.json").write_text(json.dumps(settings, indent=2), encoding="utf-8")
+    wam = [str(VENV_PY), str(ROOT / "orchestrator" / "wam_cli.py"), "--target", a.target, "--workspace", str(ws)]
+    write_workbench(run_dir, ws, [SOURCES[a.target], WAM_ELECTRON if kind == "electron" else WAM_LIB,
+                                  ROOT / "validation" / "observers.py"], ["adapter", "scratch"], {"wam": wam})
     return ws
 
 
+def write_workbench(run_dir: Path, ws: Path, read_roots: list, write_dirs: list, commands: dict) -> Path:
+    """Config for orchestrator.workbench: the agent's file and command tools, with the path rules enforced."""
+    path = run_dir / "workbench.json"
+    path.write_text(json.dumps({
+        "workspace": str(ws), "read_roots": [str(p) for p in [ws, *read_roots]], "write_dirs": write_dirs,
+        "forbidden": DENY_READ, "commands": commands, "command_timeout": 1800,
+        "log": str(run_dir / "workbench-log.jsonl")}, indent=2), encoding="utf-8")
+    return path
+
+
+def run_native_agent(run_dir: Path, prompt: str, attempt: int, resume: bool, a) -> dict:
+    """The built-in agent loop (orchestrator.agent_loop): Muse Spark + the workbench and REA over MCP."""
+    log = run_dir / f"attempt-{attempt}.jsonl"
+    cmd = [str(VENV_PY), "-m", "orchestrator.agent_loop", "--workbench", str(run_dir / "workbench.json"),
+           "--mcp-config", str(run_dir / "mcp.json"), "--log", str(log), "--state", str(run_dir / "agent_state.json"),
+           "--model", a.model, "--max-turns", str(getattr(a, "max_turns", 150))] + (["--resume"] if resume else [])
+    started = time.monotonic()
+    with open(run_dir / f"attempt-{attempt}.stderr.txt", "w", encoding="utf-8") as err:
+        try:
+            rc = subprocess.run(cmd, cwd=ROOT, input=prompt.encode("utf-8"), stdout=err, stderr=subprocess.STDOUT,
+                                timeout=a.attempt_timeout, env=a.env).returncode
+        except subprocess.TimeoutExpired:
+            rc = "timeout"
+    return {"log": log.name, "returncode": rc, "seconds": round(time.monotonic() - started)}
+
+
 def run_agent(run_dir: Path, ws: Path, prompt: str, attempt: int, session_id: str, resume: bool, a) -> dict:
+    if a.harness == "native":
+        return run_native_agent(run_dir, prompt, attempt, resume, a)
     log = run_dir / f"attempt-{attempt}.jsonl"
     cmd = [CLAUDE, "-p", "--output-format", "stream-json", "--verbose",
            "--mcp-config", str(run_dir / "mcp.json"), "--strict-mcp-config",
@@ -191,7 +222,7 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     try:
         a.model = provider.resolve_model(a)
-        a.env = provider.agent_env(a.provider, a.model)
+        a.env = provider.agent_env(a.provider, a.model, a.harness)
         rea_server()
     except provider.ProviderError as e:
         print(f"refusing: {e}")
@@ -206,7 +237,7 @@ def main(argv=None) -> int:
     ws = write_workspace(run_dir, a)
     session_id = str(uuid.uuid4())
     log = {"run_id": run_id, "request": a.request, "target": a.target, "session_id": session_id,
-           "provider": a.provider, "model": a.model,
+           "provider": a.provider, "model": a.model, "harness": a.harness,
            "started": datetime.now(timezone.utc).isoformat(), "attempts": []}
 
     prompt = f"Read ./TASK.md and carry out the task it describes. The user's request: {a.request}"

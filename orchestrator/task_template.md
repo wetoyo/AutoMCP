@@ -80,21 +80,23 @@ Prefer at least two independent observers.
 
 ## Tools
 
-- REA MCP tools (`mcp__rea__*`): open the executable with `open_binary` (provider `ghidra`). The first
+Tool names depend on your client: REA tools may appear as `open_binary`, `rea_open_binary` or `mcp__rea__open_binary`, and `wam <args>` is either the shell command `./wam <args>` or the `wam` tool with `args` set to the argument list.
+
+- REA: open the executable with `open_binary` (provider `ghidra`). The first
   Ghidra analysis takes about 4 minutes; queries may run in the background, so wait for them.
   Windows Ghidra is read-only here (renaming is unavailable).
-- Shell: only `./wam ...` is permitted:
-  - `./wam identity`: sha256, PE timestamp, image base, sections, file version.
-  - `./wam bytes <rva> <count>`: bytes from the file at an RVA.
-  - `./wam probe <file.js> [--seconds N] [--observe '<postcondition JSON list>']`: launch a
+- `wam` is the only command you can run:
+  - `wam identity`: sha256, PE timestamp, image base, sections, file version.
+  - `wam bytes <rva> <count>`: bytes from the file at an RVA.
+  - `wam probe <file.js> [--seconds N] [--observe '<postcondition JSON list>']`: launch a
     **disposable** instance, run a Frida script with `WAM` loaded (`CONFIG` is `{{}}`), and print its
     `send()` messages. Use it to verify runtime layout and to test postcondition observers. It may crash
     the disposable instance; that is expected and harmless.
-  - `./wam validate`: run the full validation harness on `./adapter` (fresh instance, calls,
+  - `wam validate`: run the full validation harness on `./adapter` (fresh instance, calls,
     harness-side postconditions, restart, call again). Iterate until it passes.
-- File tools: Read/Grep/Glob anywhere in this workspace and the source tree; Write/Edit only in `./adapter/`
+- File tools: read, list and search anywhere in this workspace and the source tree; write and edit only in `./adapter/`
   and `./scratch/`.
 
 ## Budget
 
-At most {max_turns} turns. When `./wam validate` passes, finish with a short summary.
+At most {max_turns} turns. When `wam validate` passes, finish with a short summary.

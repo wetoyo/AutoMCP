@@ -26,7 +26,7 @@ Each tool was verified on a fresh instance and again after a restart. The repair
 request ──► orchestrator.run_m1 ──► agent on Muse Spark (isolated workspace)
                 │                     ├─ REA MCP (Ghidra): strings, xrefs, callers, pseudocode
                 │                     ├─ upstream source or extracted app.asar (read-only)
-                │                     └─ ./wam: identity | bytes | inspect | probe | validate
+                │                     └─ wam: identity | bytes | inspect | probe | validate
                 ├─ validation.harness: lint, fresh instance, N calls, out-of-process postconditions,
                 │                      crash and bad-args checks, restart, repeat
                 ├─ on failure: resume the agent with diagnostics (bounded attempts)
@@ -38,7 +38,7 @@ MCP client / muse_chat ──► mcp_server.server ──► Frida or DevTools �
 
 ## Setup
 
-Requires Windows, Python 3.10+, Node.js 20+ and a JDK 21+.
+Requires Windows, Python 3.10+, Node.js 20+ and a JDK 21+. No agent CLI is needed.
 
 ```sh
 python -m venv .venv && .venv/Scripts/pip install -r requirements.txt
@@ -47,10 +47,6 @@ python -m venv .venv && .venv/Scripts/pip install -r requirements.txt
 
 **Muse Spark.** Get a Meta Model API key at <https://dev.meta.ai> and export it as `MODEL_API_KEY`. The agent
 loops and `muse_chat` use it; nothing else calls a model.
-
-**Agent harness.** `npm install -g @anthropic-ai/claude-code`. The orchestrator runs the CLI against Meta's
-Anthropic-compatible endpoint with every model alias pinned to Muse Spark, so no Anthropic account is needed.
-Pass `--provider anthropic` to use Claude instead.
 
 **REA + Ghidra.** The agent's reverse-engineering server.
 
@@ -88,6 +84,19 @@ python demos/run_demo.py --app sumatrapdf --allow-unapproved
 For Electron targets, start a debuggable instance first with `python -m runtime.electron_launch <target>`.
 For static analysis of any JavaScript app, use `python -m orchestrator.run_analysis`.
 
+**Agent options.** By default the orchestrator runs its built-in agent loop (`orchestrator.agent_loop`), which
+calls Muse Spark directly and needs no agent CLI. `--harness claude` runs the headless `claude` CLI instead, on
+Muse Spark or, with `--provider anthropic`, on Claude.
+
+**Bring your own agent.** The agent's tools are an MCP server, so any MCP-capable agent can do the discovery:
+
+```sh
+python -m orchestrator.workbench --config runs/<run_id>/workbench.json
+```
+
+It serves file tools (reads scoped to the workspace and the reference source, writes only to
+`adapter/`) and `wam`. Pair it with the `rea` server from `.mcp.json`; `run_m1` writes both configs for each run.
+
 **Other MCP clients.** `mcp_server.server` is a standard stdio server:
 
 ```json
@@ -112,7 +121,7 @@ match.
 
 | Path | Role |
 |---|---|
-| `orchestrator/` | agent loops (`run_m1`, `run_analysis`), model backend (`provider.py`), task briefs, `./wam`, approval |
+| `orchestrator/` | run loops (`run_m1`, `run_analysis`), built-in agent (`agent_loop.py`), agent tools as MCP (`workbench.py`), task briefs, `wam`, approval |
 | `validation/` | disposable-instance harness, out-of-process observers, discovery checks |
 | `runtime/` | Frida and DevTools bridges, in-process helper libraries, Electron launcher |
 | `mcp_server/` | MCP server, Muse Spark tool rules and client (`muse_chat.py`) |

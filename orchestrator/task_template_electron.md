@@ -10,7 +10,7 @@
 - Executable (do not modify): `{exe_path}`
 - Its `app.asar`, extracted for you (read-only): `{source_dir}`. This is the shipped, bundled JavaScript:
   bundler output, possibly minified, with no source maps. Treat it as the binary.
-- Run `./wam identity` first: it reports the hashes, the Electron version, the fuses, and which execution
+- Run `wam identity` first: it reports the hashes, the Electron version, the fuses, and which execution
   contexts are reachable (`renderer` pages through the remote-debugging port; `main`, the Node main process,
   only when the `EnableNodeCliInspectArguments` fuse allows the inspector).
 
@@ -42,7 +42,7 @@ Write exactly these files into `./adapter/`:
 
 1. `adapter.js`: calls the internal function **in-process** through a handle.
 2. `manifest.json`: the schema below.
-3. `DISCOVERY.md`: the evidence chain (files and lines in the bundle, REA queries, `./wam inspect` results,
+3. `DISCOVERY.md`: the evidence chain (files and lines in the bundle, REA queries, `wam inspect` results,
    why each identification holds), failed hypotheses, and remaining uncertainties.
 
 If you cannot establish the function, its arguments, the required `this`/owner object, and the context with
@@ -66,7 +66,7 @@ Rules (several are enforced statically):
 - **Call the internal function directly** through a handle (`h.fn.call(owner, ...)`). Do not synthesize input
   or route through UI/message plumbing: no `sendInputEvent`, `dispatchEvent`, DOM `.click()`, `execCommand`,
   `ipcRenderer`/`webContents.send`, `.emit(...)`, `postMessage`, `executeJavaScript`.
-- **Pin the code**: every `expect: "function"` handle needs `source_sha256`. `./wam inspect` prints it.
+- **Pin the code**: every `expect: "function"` handle needs `source_sha256`. `wam inspect` prints it.
 - Resolve owner objects at runtime through handles and validate them before use. Never cache anything across calls.
 - Fail closed with explicit codes. Use `state_not_ready` for transient start-up states (callers retry only those,
   plus `handle_missing` during start-up) and other codes (`state_invalid`, `signature_mismatch`, ...) otherwise.
@@ -108,21 +108,23 @@ adapter mutates.
 
 ## Tools
 
-- REA MCP tools: `mcp__rea__analyze_javascript_application` (`input_path` = a directory or `.asar`; pass
-  `source_paths` for the files you care about and `detail: "summary"`), `mcp__rea__trace_javascript_semantics`.
-- Shell: only `./wam ...` is permitted. Each command launches its own disposable instance (a few seconds):
-  - `./wam identity`
-  - `./wam inspect --anchor '<expr>' [--path '<JSON steps>'] [--url-pattern RX] [--limit N]`: resolve exactly as
+Tool names depend on your client: REA tools may appear as `open_binary`, `rea_open_binary` or `mcp__rea__open_binary`, and `wam <args>` is either the shell command `./wam <args>` or the `wam` tool with `args` set to the argument list.
+
+- REA: `analyze_javascript_application` (`input_path` = a directory or `.asar`; pass
+  `source_paths` for the files you care about and `detail: "summary"`), `trace_javascript_semantics`.
+- `wam` is the only command you can run. Each command launches its own disposable instance (a few seconds):
+  - `wam identity`
+  - `wam inspect --anchor '<expr>' [--path '<JSON steps>'] [--url-pattern RX] [--limit N]`: resolve exactly as
     the bridge does and describe the value: properties, internal slots, and for functions their closure-scope
     variables and `source_sha256`. This is how you find and pin handles.
-  - `./wam probe <file.js> [--handles <manifest.json or handles.json>] [--observe '<postcondition JSON list>']`:
+  - `wam probe <file.js> [--handles <manifest.json or handles.json>] [--observe '<postcondition JSON list>']`:
     run the file as the body of `async (h) => {{ ... }}` with `WAM` loaded and print the returned value. Use it to
     test calls and observers. It may break the disposable instance; that is harmless.
-  - `./wam validate`: the full validation harness on `./adapter` (fresh instance, calls, harness-side
+  - `wam validate`: the full validation harness on `./adapter` (fresh instance, calls, harness-side
     postconditions, restart, call again). Iterate until it passes.
-- File tools: Read/Grep/Glob anywhere in this workspace and the extracted tree; Write/Edit only in `./adapter/`
+- File tools: read, list and search anywhere in this workspace and the extracted tree; write and edit only in `./adapter/`
   and `./scratch/`.
 
 ## Budget
 
-At most {max_turns} turns. When `./wam validate` passes, finish with a short summary.
+At most {max_turns} turns. When `wam validate` passes, finish with a short summary.

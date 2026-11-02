@@ -1,11 +1,11 @@
-"""Model backend for the agent loops (run_m1, run_analysis).
+"""Model backend and harness selection for the agent loops (run_m1, run_analysis).
 
-The default backend is Meta's **Muse Spark** series, served by the Meta Model API. The agent harness is still
-the headless `claude` CLI, but it talks to Meta's Anthropic-compatible Messages endpoint
-(https://api.meta.ai/v1/messages) instead of Anthropic. Every model alias the CLI might use is pinned to the same
-Muse Spark model, so no background task, subagent or plan step goes to a model Meta does not serve.
+--harness native (default): orchestrator.agent_loop calls Meta's Muse Spark (Responses API) directly and gets its
+tools from orchestrator.workbench and REA over MCP. No agent CLI is involved.
 
-`--provider anthropic` keeps the original Claude backend.
+--harness claude: the headless `claude` CLI. With --provider muse-spark (default) it talks to Meta's
+Anthropic-compatible Messages endpoint, with every model alias pinned to the same Muse Spark model so no
+background task, subagent or plan step goes to a model Meta does not serve. --provider anthropic uses Claude.
 """
 from __future__ import annotations
 
@@ -41,6 +41,9 @@ class ProviderError(RuntimeError):
 def add_args(ap) -> None:
     ap.add_argument("--provider", choices=list(PROVIDERS), default=DEFAULT_PROVIDER,
                     help="agent model backend (default: muse-spark, via the Meta Model API)")
+    ap.add_argument("--harness", choices=["native", "claude"], default=os.environ.get("WAM_AGENT_HARNESS", "native"),
+                    help="native: built-in agent loop (orchestrator.agent_loop, Muse Spark only); "
+                         "claude: the headless `claude` CLI")
     ap.add_argument("--model", default=None,
                     help="model id; default muse-spark-1.3 for muse-spark, opus for anthropic")
 
@@ -48,13 +51,15 @@ def add_args(ap) -> None:
 def resolve_model(a) -> str:
     p = PROVIDERS[a.provider]
     model = a.model or p["default_model"]
+    if getattr(a, "harness", "native") == "native" and a.provider != "muse-spark":
+        raise ProviderError("the native harness runs on Muse Spark only; pass --harness claude for --provider anthropic")
     if p["models"] is not None and model not in p["models"]:
         raise ProviderError(f"--model {model!r} is not a Muse Spark model; choose one of {p['models']}")
     return model
 
 
-def agent_env(provider: str, model: str) -> dict:
-    """Environment for the `claude` subprocess."""
+def agent_env(provider: str, model: str, harness: str = "claude") -> dict:
+    """Environment for the agent subprocess."""
     env = dict(os.environ)
     if provider == "anthropic":
         return env
@@ -62,6 +67,8 @@ def agent_env(provider: str, model: str) -> dict:
     if not key:
         raise ProviderError(f"{META_KEY_ENV} is not set. Create a key at https://dev.meta.ai and export it, "
                             "or pass --provider anthropic.")
+    if harness == "native":
+        return env
     for k in _STRIP:
         env.pop(k, None)
     env.update({

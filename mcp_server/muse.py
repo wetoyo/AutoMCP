@@ -63,6 +63,27 @@ def tool_problems(tool: dict) -> list[str]:
     return problems
 
 
+def relax_schema(schema, level: int = 1):
+    """Fit a third-party tool schema to Muse Spark's limits: `oneOf` becomes `anyOf`, a one-item `allOf` is
+    inlined, and anything nested deeper than MAX_DEPTH becomes an unconstrained value. The tool's own server still
+    validates the arguments, so only the model's hint gets looser."""
+    if isinstance(schema, list):
+        return [relax_schema(v, level) for v in schema]
+    if not isinstance(schema, dict):
+        return schema
+    if level >= MAX_DEPTH:
+        return {"description": schema["description"]} if isinstance(schema.get("description"), str) else {}
+    out = {}
+    for k, v in schema.items():
+        if k == "allOf" and isinstance(v, list) and len(v) == 1 and isinstance(v[0], dict):
+            out.update(relax_schema(v[0], level))
+        elif k in ("oneOf", "allOf"):
+            out["anyOf"] = relax_schema(v, level + 1)
+        else:
+            out[k] = relax_schema(v, level + 1) if isinstance(v, (dict, list)) else v
+    return out
+
+
 def function_tool(name: str, description: str, input_schema: dict | None) -> dict:
     """An MCP tool as a Muse Spark Responses API function tool."""
     params = {k: v for k, v in (input_schema or {}).items() if k not in ("title", "$schema")}

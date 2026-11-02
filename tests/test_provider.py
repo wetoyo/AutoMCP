@@ -17,7 +17,7 @@ class ProviderTests(unittest.TestCase):
         if "WAM_AGENT_PROVIDER" not in os.environ:
             self.assertEqual(parse().provider, "muse-spark")
         self.assertEqual(provider.resolve_model(parse("--provider", "muse-spark")), "muse-spark-1.3")
-        self.assertEqual(provider.resolve_model(parse("--provider", "anthropic")), "opus")
+        self.assertEqual(provider.resolve_model(parse("--provider", "anthropic", "--harness", "claude")), "opus")
 
     def test_rejects_non_muse_model(self):
         a = parse("--provider", "muse-spark", "--model", "opus")
