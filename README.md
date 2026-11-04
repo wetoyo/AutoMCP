@@ -13,9 +13,9 @@ Second-app report: [`docs/M3_REPORT.md`](docs/M3_REPORT.md)
 
 | Tool | App | Internal function | Origin |
 |---|---|---|---|
-| `notepadpp_new_document` | Notepad++ 8.9.8.1 x64 | `Notepad_plus::fileNew()` (RVA `0x13c7a0`) | manual (M0) and agent (M1) |
-| `sumatrapdf_new_window` | SumatraPDF 3.6.1 x64 | `CreateAndShowMainWindow(nullptr)` (RVA `0x1a39b8`) | agent, first attempt |
-| `marktext_new_untitled_tab` | MarkText 0.22.0 (Electron 42.1.0) | editor store `NEW_UNTITLED_TAB` | agent, first attempt |
+| `notepadpp_new_document` | Notepad++ 8.9.8.1 x64 | `Notepad_plus::fileNew()` (RVA `0x13c7a0`) | manual (M0) and agent on Claude Opus (M1) |
+| `sumatrapdf_new_window` | SumatraPDF 3.6.1 x64 | `CreateAndShowMainWindow(nullptr)` (RVA `0x1a39b8`) | agent on Claude Opus and on Muse Spark, first attempt each |
+| `marktext_new_untitled_tab` | MarkText 0.22.0 (Electron 42.1.0) | editor store `NEW_UNTITLED_TAB` | agent on Claude Opus, first attempt |
 
 Each tool was verified on a fresh instance and again after a restart. The repair loop was proven with
 `--inject-fault`: the harness caught the corrupted adapter and the agent fixed it on its second attempt.

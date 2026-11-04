@@ -120,7 +120,7 @@ messages and records denials (`permission_denials` in `run.json`), with a regres
 - **Cost.** Each agent run in the results above took ~6 min of Opus time plus Ghidra. The agent now defaults to
   Meta Muse Spark (`muse-spark-1.3`; see README "Agent model setup"), and each attempt records `est_cost_usd` at
   Meta's prices. On Muse Spark, the CLI enforces `--max-budget-usd` with Anthropic prices, so bound runs with
-  `--attempt-timeout`. No Muse Spark run has been recorded yet.
+  `--attempt-timeout`. The first Muse Spark run took 1107 s and about $1.47 (see "Muse Spark").
 
 ## Where the evidence is
 
@@ -211,10 +211,19 @@ same session makes 2 more calls, each one +1 tab. The native demos still pass af
 - **Zero-argument tools only** in the server, as for native tools. The Electron bridge already passes `args` and
   `WAM.validateArgs` enforces the schema, but `make_handler` takes no parameters.
 
+## Muse Spark
+
+Run `runs/20261103-204600-sumatrapdf-new_window_muse` (`muse-spark-1.3`, built-in agent loop): **passed on attempt 1,
+1107 s, 66 turns, about $1.47, clean audit, published** as `sumatrapdf/new_window_muse`. It reached the same function
+and RVA as the Opus run (`CreateAndShowMainWindow`, `0x1a39b8`). `adapters/` was a forbidden path and the transcript
+never mentions the earlier adapter. `muse_chat` then called the tool on a live instance (windows 1→2).
+
+The adapter is weaker than the Opus one: no `gWindows` or `gGlobalPrefs` checks, one postcondition rather than two, and
+no decoding of the WM_COMMAND dispatcher. It returns `state_not_ready` if the new window isn't visible 800 ms after the
+call, so a caller that retries could open a second window. The Notepad++ and MarkText adapters are still Opus-only.
+
 ## Open work
 
-- **First Muse Spark runs.** The agent loops and `mcp_server.muse_chat` default to Muse Spark, but every adapter in
-  the Results table was generated on Claude Opus. Next: `muse_chat --check`, then one `run_m1` run on Muse Spark.
 - **An app the model hasn't seen.** MarkText is open source, so the model's prior knowledge probably helped. A
   closed-source Electron app with a minified bundle would be a real test of discovery. To onboard one, add a
   `TARGETS` entry in `validation/harness.py` and `SOURCES`/`APP_NAMES` entries in `orchestrator/run_m1.py`.

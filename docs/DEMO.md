@@ -26,47 +26,47 @@ Expose the application's internal function for opening a new window
 
 **Screen:** the agent's REA calls. Pause on each hop of the chain.
 
-> There are no symbols, only a stripped binary. The agent starts from a window-class string and follows it through
-> Ghidra.
+> Muse Spark reads the app's public source to work out what to call, then has to find it in a binary with no symbols.
+> It starts from a window-class string and follows it through Ghidra.
 
 | Step | Finding |
 |---|---|
 | String | `SUMATRA_PDF_FRAME` at `0x140900cc8` |
 | Xref | leads to `FUN_1401a34b4`, which matches `CreateMainWindow` in the source |
-| Single caller | `0x1401a39b8`, which matches `CreateAndShowMainWindow` |
-| Dispatcher | `xor ecx,ecx; call 0x1401a39b8` at `cmd == 242`, so the menu passes `nullptr` |
+| Wrapper | `FUN_1401a39b8`, which matches `CreateAndShowMainWindow` |
+| Live probes | windows 1→2→3 on a disposable copy; a wrong build or wrong bytes fail closed |
 
-> It doesn't stop at a name. It proves the signature, the argument and the thread before it writes any code.
+> It doesn't stop at a name. It tests the call on a disposable copy of the app before it publishes anything.
 
-Source for this beat: `adapters/sumatrapdf/new_window_agent/DISCOVERY.md`. The original transcript is gone
-(`runs/` is empty), so footage needs a fresh run. See [Before recording](#before-recording).
+Footage is a labelled, sped-up replay of the recorded run: 66 turns, 18.5 minutes, about $1.47 estimated. Sources:
+`adapters/sumatrapdf/new_window_muse/DISCOVERY.md` and `runs/20261103-204600-sumatrapdf-new_window_muse/`.
 
 ### 0:50 Adapter (20 s)
 
-**Screen:** `adapter.js` and the `resolution` block of `manifest.json`.
+**Screen:** `adapter.js` and the `resolution` block of `manifest.json` from `new_window_muse`.
 
-> The result is a small Frida adapter pinned to this exact build. It checks the PE timestamp, the entry bytes and the
-> live data structures, and refuses to run if anything differs. It runs on the GUI thread with no clicks and no
-> `WM_COMMAND`. The lint rejects those.
+> Muse Spark wrote this: a small Frida adapter pinned to this exact build. It checks the PE timestamp and the entry
+> bytes, and refuses to run if they differ. It runs on the GUI thread with no clicks and no `WM_COMMAND`. The lint
+> rejects those.
 
 ### 1:10 Validation (20 s)
 
-**Screen:** the validation output. ⚠️ Run it live, or show the stored `validation.json` (`passed: true`).
+**Screen:** the validation output. ✅
 
 ```sh
-python -m validation.harness sumatrapdf new_window_agent --calls 3
+python -m validation.harness sumatrapdf new_window_muse --calls 3
 ```
 
 > An adapter can't certify itself. The harness launches a disposable copy, calls the tool and checks the result from
 > outside the process: one more window, every call. Then it restarts the app and does it again.
 
-Optional line: in our fault-injection test, we corrupted a verified adapter. The harness caught it, and the agent
-fixed it on its second attempt in 32 seconds.
+Optional line: in an earlier fault-injection test on Claude Opus, we corrupted a verified adapter. The harness caught
+it, and the agent fixed it on its second attempt in 32 seconds.
 
 ### 1:30 Approve and publish (10 s)
 
 ```sh
-python -m orchestrator.approve sumatrapdf new_window_agent
+python -m orchestrator.approve sumatrapdf new_window_muse
 ```
 
 > A tool that changes app state is only published after a person approves it. Destructive tools are never published.
@@ -76,7 +76,7 @@ python -m orchestrator.approve sumatrapdf new_window_agent
 **Screen:** split view of terminal and SumatraPDF windows.
 
 ```sh
-python demos/run_demo.py --app sumatrapdf
+python demos/run_demo.py --app sumatrapdf --adapter sumatrapdf/new_window_muse
 ```
 
 Output from the 2026-11-03 rehearsal:
@@ -97,11 +97,11 @@ call sumatrapdf_new_window: ok=True  SumatraPDF windows: 2 -> 3
 **Screen:** SumatraPDF open, then the terminal. Start the app from `targets/sumatrapdf/app/` first.
 
 ```sh
-python -m mcp_server.muse_chat --server-arg=--only=sumatrapdf/new_window_agent "Open a new SumatraPDF window"
+python -m mcp_server.muse_chat --server-arg=--only=sumatrapdf/new_window_muse "Open a new SumatraPDF window"
 ```
 
-> Any MCP client can use the tool. Here, Muse Spark picks it from a plain request, and the model is only involved
-> in choosing the call.
+> Any MCP client can use the tool. Here, Muse Spark uses the tool it built, from a plain request. The model only
+> chooses the call.
 
 ### 2:35 Same pipeline on Electron (15 s) ✅
 
@@ -120,7 +120,8 @@ call marktext_new_untitled_tab: ok=True  editor tabs (DOM): 2 -> 3
 ```
 
 > Same pipeline, different runtime. MarkText is Electron, so there's no Frida here: the adapter reaches the editor
-> store's own `NEW_UNTITLED_TAB` through the DevTools protocol. Same validation, same restart.
+> store's own `NEW_UNTITLED_TAB` through the DevTools protocol. Same validation, same restart. This adapter was
+> generated on Claude Opus.
 
 ### 2:50 Close (10 s)
 
@@ -135,18 +136,24 @@ call marktext_new_untitled_tab: ok=True  editor tabs (DOM): 2 -> 3
 |---|---|---|
 | Unit tests pass (52) | ✅ | run 2026-11-03 |
 | Muse Spark accepts the tool definitions (`muse_chat --check`) | ✅ | run 2026-11-03, SumatraPDF and MarkText |
-| Three adapters verified by the harness | Recorded, not rerun | `adapters/*/*/validation.json` |
+| Muse Spark adapter passes the harness, including a restart | ✅ | run 2026-11-03 |
+| Notepad++ and MarkText adapters verified by the harness | Recorded, harness not rerun | `adapters/*/*/validation.json` |
 | Restart demo passes (SumatraPDF, 1→2→3 twice) | ✅ | run 2026-11-03 |
 | Restart demo passes (MarkText/Electron, 1→2→3 twice) | ✅ | run 2026-11-03 |
 | Muse Spark calling a tool on a live app (windows 1→2) | ✅ | run 2026-11-03 |
-| Muse Spark generating an adapter | ❌ Never run; all adapters were generated on Claude Opus | `NOTES.md` |
+| Muse Spark generating an adapter (SumatraPDF, attempt 1, clean audit) | ✅ | `runs/20261103-204600-sumatrapdf-new_window_muse/` |
+| Muse Spark generating the Notepad++ or MarkText adapter | ❌ Those were generated on Claude Opus | `NOTES.md` |
 | Discovery on an app the model has never seen | ❌ All targets are open source | `NOTES.md` |
 
 ## Say it accurately
 
-- Until a Muse Spark run succeeds, say: "the pipeline runs on Muse Spark by default; these adapters were generated on
-  Claude Opus." Don't say Muse Spark built them. The README's opening currently implies it did.
-- Say "tool validated three times per phase", not "works reliably": that's what the reports show.
+- Muse Spark built the SumatraPDF adapter. Opus built the MarkText and Notepad++ ones. Don't blur this.
+- Muse Spark had the upstream source. Don't imply it worked from the binary alone.
+- Muse Spark and Opus independently reached the same function and RVA (`0x1a39b8`). The sandbox blocked access to the
+  earlier adapter, and the audit found no leaks.
+- Say "validated three times per phase", not "works reliably": that's what the reports show.
+- The Muse Spark adapter is less guarded than Opus's: no `gWindows` check and one postcondition rather than two. It can
+  also return `state_not_ready` after a window has opened. Don't describe live data-structure checks.
 - Don't claim the tools take arguments. All of them are zero-argument so far.
 - Electron means the renderer only so far, and the demo launches MarkText with a local debugging port.
 
@@ -155,29 +162,23 @@ call marktext_new_untitled_tab: ok=True  editor tabs (DOM): 2 -> 3
 Run everything from the main checkout with `.venv` activated. `adapters/` and `targets/` are local only, so a fresh
 clone or worktree can't run the demo.
 
-1. **Load the key.** Nothing reads `.env` automatically:
+1. **Merge this branch first.** The commands above need `--adapter` from `demos/run_demo.py`.
+2. **Load the key.** Nothing reads `.env` automatically:
    ```powershell
    $env:MODEL_API_KEY = ((Get-Content .env | Where-Object { $_ -match '^MODEL_API_KEY=' }) -replace '^MODEL_API_KEY=','').Trim()
    ```
-2. **Generate on Muse Spark for discovery footage and to close the biggest gap.** Budget 10+ minutes (about 4 of them
-   Ghidra's cold start). Use a new operation name to keep the working adapter:
+3. **Approve the two tools for the take.** This changes the local manifests, and it's your sign-off:
    ```sh
-   python -m orchestrator.run_m1 --target sumatrapdf --operation new_window_muse \
-       --request "Expose the application's internal function for opening a new window"
-   ```
-   Two adapters will then claim `sumatrapdf_new_window`, so the server publishes neither without `--only`. Decide
-   which one the demo serves and update the commands above.
-3. **Rehearse without approving.** Approval changes the local manifest, so save it for the take:
-   ```sh
-   python demos/run_demo.py --app sumatrapdf --allow-unapproved
-   python -m mcp_server.muse_chat --server-arg=--include-unapproved --server-arg=--only=sumatrapdf/new_window_agent "Open a new SumatraPDF window"
-   ```
-4. **Approve MarkText before the take**, so its command runs without `--allow-unapproved`:
-   ```sh
+   python -m orchestrator.approve sumatrapdf new_window_muse
    python -m orchestrator.approve marktext new_tab_agent
    ```
-5. **Close other copies of SumatraPDF and MarkText.** With several matches, the server refuses to guess.
-6. **Record a clean take of every beat** as a fallback, since the live parts depend on Frida and a remote API.
+4. **Close other copies of SumatraPDF and MarkText.** With several matches, the server refuses to guess.
+5. **Clear the screen for final takes.** Close private windows and turn on Do Not Disturb.
+
+Terminal-only fallback takes are in `runs/demo-takes/`. They show `--allow-unapproved` and `approved=no`, and none of
+them show the app windows, so record the restart, Muse Spark and MarkText steps again for the final cut. The validation
+take runs the real harness with `--no-write` and prints a summary of its report. The takes were recorded with a copy of
+`run_demo.py` pointed at the main checkout, because this branch isn't merged yet.
 
 ## Likely questions
 
@@ -185,8 +186,9 @@ clone or worktree can't run the demo.
   synthesized input, `WM_COMMAND`, DOM events and IPC.
 - **What happens when the app updates?** The adapter fails closed with `version_mismatch` or `signature_mismatch`.
   Rerun the agent for the new build. There's no cross-version matching.
-- **Did the model already know this code?** Possibly: all targets are open source. The binary-side evidence is real
-  and logged, but a closed-source app is the proper test, and we haven't run one.
+- **Did the model already know this code?** Possibly: all targets are open source, and the agent reads the upstream
+  source. The binary-side evidence is real and logged, but a closed-source app is the proper test, and we haven't run
+  one.
 - **Is it safe?** Validation only touches disposable copies. Attach only to apps you're authorized to instrument.
   Protected and anti-cheat processes are out of scope.
 - **What doesn't work yet?** Tool arguments, Electron main-process targets (renderer only so far) and matching across

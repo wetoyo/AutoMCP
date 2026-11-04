@@ -9,6 +9,7 @@ For each selected app this script
 
 Usage:
   python demos/run_demo.py [--app notepadpp|sumatrapdf|marktext|all] [--calls 2] [--allow-unapproved]
+                           [--adapter APP/OP]
 
 Electron targets (marktext) are launched with 127.0.0.1 debugging ports, and each (re)launch is
 recorded in runtime/live/<target>.json, which is how the separate server process finds the instance.
@@ -139,8 +140,13 @@ def main() -> int:
     ap.add_argument("--app", default="all", choices=[*DEMOS, "all"])
     ap.add_argument("--calls", type=int, default=2)
     ap.add_argument("--allow-unapproved", action="store_true")
+    ap.add_argument("--adapter", metavar="APP/OP", help="serve this adapter instead of the app's default")
     a = ap.parse_args()
     apps = list(DEMOS) if a.app == "all" else [a.app]
+    if a.adapter:
+        if a.adapter.split("/")[0] not in apps or len(apps) != 1:
+            ap.error("--adapter must belong to the single app selected with --app")
+        DEMOS[apps[0]]["adapter"] = a.adapter
     results = {app: asyncio.run(demo(app, a.calls, a.allow_unapproved)) for app in apps}
     banner("summary: " + ", ".join(f"{k}={'PASS' if v else 'FAIL'}" for k, v in results.items()))
     return 0 if all(results.values()) else 1
