@@ -22,7 +22,7 @@ Windows app. After that, calling it needs no LLM.
 Expose the application's internal function for opening a new window
 ```
 
-### 0:20 Discovery (45 s, pre-recorded and sped up)
+### 0:20 Discovery (30 s, pre-recorded and sped up)
 
 **Screen:** the agent's REA calls. Pause on each hop of the chain.
 
@@ -41,7 +41,7 @@ Expose the application's internal function for opening a new window
 Source for this beat: `adapters/sumatrapdf/new_window_agent/DISCOVERY.md`. The original transcript is gone
 (`runs/` is empty), so footage needs a fresh run. See [Before recording](#before-recording).
 
-### 1:05 Adapter (20 s)
+### 0:50 Adapter (20 s)
 
 **Screen:** `adapter.js` and the `resolution` block of `manifest.json`.
 
@@ -49,7 +49,7 @@ Source for this beat: `adapters/sumatrapdf/new_window_agent/DISCOVERY.md`. The o
 > live data structures, and refuses to run if anything differs. It runs on the GUI thread with no clicks and no
 > `WM_COMMAND`. The lint rejects those.
 
-### 1:25 Validation (20 s)
+### 1:10 Validation (20 s)
 
 **Screen:** the validation output. ⚠️ Run it live, or show the stored `validation.json` (`passed: true`).
 
@@ -63,7 +63,7 @@ python -m validation.harness sumatrapdf new_window_agent --calls 3
 Optional line: in our fault-injection test, we corrupted a verified adapter. The harness caught it, and the agent
 fixed it on its second attempt in 32 seconds.
 
-### 1:45 Approve and publish (10 s)
+### 1:30 Approve and publish (10 s)
 
 ```sh
 python -m orchestrator.approve sumatrapdf new_window_agent
@@ -71,7 +71,7 @@ python -m orchestrator.approve sumatrapdf new_window_agent
 
 > A tool that changes app state is only published after a person approves it. Destructive tools are never published.
 
-### 1:55 Reuse across a restart (35 s, the payoff) ✅
+### 1:40 Reuse across a restart (35 s, the payoff) ✅
 
 **Screen:** split view of terminal and SumatraPDF windows.
 
@@ -92,7 +92,7 @@ call sumatrapdf_new_window: ok=True  SumatraPDF windows: 2 -> 3
 > A separate MCP server calls the tool, and windows appear. Now we kill the app and relaunch it: new process, same
 > MCP session. The same tool works again. No model ran in that loop and nothing was regenerated.
 
-### 2:30 Natural language through Muse Spark (20 s) ✅
+### 2:15 Natural language through Muse Spark (20 s) ✅
 
 **Screen:** SumatraPDF open, then the terminal. Start the app from `targets/sumatrapdf/app/` first.
 
@@ -102,6 +102,25 @@ python -m mcp_server.muse_chat --server-arg=--only=sumatrapdf/new_window_agent "
 
 > Any MCP client can use the tool. Here, Muse Spark picks it from a plain request, and the model is only involved
 > in choosing the call.
+
+### 2:35 Same pipeline on Electron (15 s) ✅
+
+**Screen:** MarkText tabs and the terminal. Pre-recorded is fine; it starts slower than SumatraPDF.
+
+```sh
+python demos/run_demo.py --app marktext
+```
+
+```
+call marktext_new_untitled_tab: ok=True  editor tabs (DOM): 1 -> 2
+call marktext_new_untitled_tab: ok=True  editor tabs (DOM): 2 -> 3
+=== marktext: restart the application (same MCP session, no regeneration)
+call marktext_new_untitled_tab: ok=True  editor tabs (DOM): 1 -> 2
+call marktext_new_untitled_tab: ok=True  editor tabs (DOM): 2 -> 3
+```
+
+> Same pipeline, different runtime. MarkText is Electron, so there's no Frida here: the adapter reaches the editor
+> store's own `NEW_UNTITLED_TAB` through the DevTools protocol. Same validation, same restart.
 
 ### 2:50 Close (10 s)
 
@@ -118,6 +137,7 @@ python -m mcp_server.muse_chat --server-arg=--only=sumatrapdf/new_window_agent "
 | Muse Spark accepts the tool definitions (`muse_chat --check`) | ✅ | run 2026-11-03, SumatraPDF and MarkText |
 | Three adapters verified by the harness | Recorded, not rerun | `adapters/*/*/validation.json` |
 | Restart demo passes (SumatraPDF, 1→2→3 twice) | ✅ | run 2026-11-03 |
+| Restart demo passes (MarkText/Electron, 1→2→3 twice) | ✅ | run 2026-11-03 |
 | Muse Spark calling a tool on a live app (windows 1→2) | ✅ | run 2026-11-03 |
 | Muse Spark generating an adapter | ❌ Never run; all adapters were generated on Claude Opus | `NOTES.md` |
 | Discovery on an app the model has never seen | ❌ All targets are open source | `NOTES.md` |
@@ -128,6 +148,7 @@ python -m mcp_server.muse_chat --server-arg=--only=sumatrapdf/new_window_agent "
   Claude Opus." Don't say Muse Spark built them. The README's opening currently implies it did.
 - Say "tool validated three times per phase", not "works reliably": that's what the reports show.
 - Don't claim the tools take arguments. All of them are zero-argument so far.
+- Electron means the renderer only so far, and the demo launches MarkText with a local debugging port.
 
 ## Before recording
 
@@ -151,8 +172,12 @@ clone or worktree can't run the demo.
    python demos/run_demo.py --app sumatrapdf --allow-unapproved
    python -m mcp_server.muse_chat --server-arg=--include-unapproved --server-arg=--only=sumatrapdf/new_window_agent "Open a new SumatraPDF window"
    ```
-4. **Close other copies of SumatraPDF.** With several matches, the server refuses to guess.
-5. **Record a clean take of every beat** as a fallback, since the live parts depend on Frida and a remote API.
+4. **Approve MarkText before the take**, so its command runs without `--allow-unapproved`:
+   ```sh
+   python -m orchestrator.approve marktext new_tab_agent
+   ```
+5. **Close other copies of SumatraPDF and MarkText.** With several matches, the server refuses to guess.
+6. **Record a clean take of every beat** as a fallback, since the live parts depend on Frida and a remote API.
 
 ## Likely questions
 
