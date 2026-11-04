@@ -162,23 +162,29 @@ call marktext_new_untitled_tab: ok=True  editor tabs (DOM): 2 -> 3
 Run everything from the main checkout with `.venv` activated. `adapters/` and `targets/` are local only, so a fresh
 clone or worktree can't run the demo.
 
-1. **Merge this branch first.** The commands above need `--adapter` from `demos/run_demo.py`.
-2. **Load the key.** Nothing reads `.env` automatically:
+1. **Load the key.** Nothing reads `.env` automatically:
    ```powershell
    $env:MODEL_API_KEY = ((Get-Content .env | Where-Object { $_ -match '^MODEL_API_KEY=' }) -replace '^MODEL_API_KEY=','').Trim()
    ```
-3. **Approve the two tools for the take.** This changes the local manifests, and it's your sign-off:
-   ```sh
-   python -m orchestrator.approve sumatrapdf new_window_muse
-   python -m orchestrator.approve marktext new_tab_agent
-   ```
-4. **Close other copies of SumatraPDF and MarkText.** With several matches, the server refuses to guess.
-5. **Clear the screen for final takes.** Close private windows and turn on Do Not Disturb.
+2. **Close other copies of SumatraPDF and MarkText.** With several matches, the server refuses to guess.
+3. **Clear the screen for any new takes.** Close private windows and turn on Do Not Disturb.
 
-Terminal-only fallback takes are in `runs/demo-takes/`. They show `--allow-unapproved` and `approved=no`, and none of
-them show the app windows, so record the restart, Muse Spark and MarkText steps again for the final cut. The validation
-take runs the real harness with `--no-write` and prints a summary of its report. The takes were recorded with a copy of
-`run_demo.py` pointed at the main checkout, because this branch isn't merged yet.
+The SumatraPDF adapter and the MarkText tool are approved. To show approval on camera, record that step separately.
+
+## Takes
+
+All are in `runs/demo-takes/`, which is local only.
+
+| Step | File | Shows |
+|---|---|---|
+| Discovery | `1-discovery-replay.mp4` | Labelled, sped-up replay of the Muse Spark run |
+| Validation | `2-validation.mp4` | Real harness run with `--no-write`, printed as a summary of its report |
+| Reuse across a restart | `final-3-restart-sumatrapdf.mp4` | Terminal and app windows, approved tool |
+| Muse Spark | `final-4-muse-chat.mp4` | Terminal and app windows, approved tool |
+| Electron | `final-5-restart-marktext.mp4` | Terminal and app windows, approved tool |
+
+The remaining numbered takes are terminal-only fallbacks recorded before approval. They show `--allow-unapproved`.
+The final takes run about 15-20 seconds, with windows opening quickly, so slow them down in the edit if needed.
 
 ## Likely questions
 
