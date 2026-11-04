@@ -71,7 +71,7 @@ python -m orchestrator.approve sumatrapdf new_window_agent
 
 > A tool that changes app state is only published after a person approves it. Destructive tools are never published.
 
-### 1:55 Reuse across a restart (35 s, the payoff) ⚠️
+### 1:55 Reuse across a restart (35 s, the payoff) ✅
 
 **Screen:** split view of terminal and SumatraPDF windows.
 
@@ -79,7 +79,7 @@ python -m orchestrator.approve sumatrapdf new_window_agent
 python demos/run_demo.py --app sumatrapdf
 ```
 
-Expected output, per the script's format and the M3 report (1→2→3 in each round):
+Output from the 2026-11-03 rehearsal:
 
 ```
 call sumatrapdf_new_window: ok=True  SumatraPDF windows: 1 -> 2
@@ -92,7 +92,7 @@ call sumatrapdf_new_window: ok=True  SumatraPDF windows: 2 -> 3
 > A separate MCP server calls the tool, and windows appear. Now we kill the app and relaunch it: new process, same
 > MCP session. The same tool works again. No model ran in that loop and nothing was regenerated.
 
-### 2:30 Natural language through Muse Spark (20 s) ⚠️
+### 2:30 Natural language through Muse Spark (20 s) ✅
 
 **Screen:** SumatraPDF open, then the terminal. Start the app from `targets/sumatrapdf/app/` first.
 
@@ -117,8 +117,8 @@ python -m mcp_server.muse_chat --server-arg=--only=sumatrapdf/new_window_agent "
 | Unit tests pass (52) | ✅ | run 2026-11-03 |
 | Muse Spark accepts the tool definitions (`muse_chat --check`) | ✅ | run 2026-11-03, SumatraPDF and MarkText |
 | Three adapters verified by the harness | Recorded, not rerun | `adapters/*/*/validation.json` |
-| Restart demo passes | ⚠️ Recorded in the notes, blocked when rerun on 2026-11-03 | `NOTES.md` |
-| Muse Spark calling a tool on a live app | ⚠️ Never run | |
+| Restart demo passes (SumatraPDF, 1→2→3 twice) | ✅ | run 2026-11-03 |
+| Muse Spark calling a tool on a live app (windows 1→2) | ✅ | run 2026-11-03 |
 | Muse Spark generating an adapter | ❌ Never run; all adapters were generated on Claude Opus | `NOTES.md` |
 | Discovery on an app the model has never seen | ❌ All targets are open source | `NOTES.md` |
 
